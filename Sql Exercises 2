@@ -1,0 +1,216 @@
+/* TASK 1 UNDERSTANDING THE DATA*/
+
+
+/*1. cust_dimen: Details of all the customers
+		
+        Customer_Name (TEXT): Name of the customer
+        Province (TEXT): Province of the customer
+        Region (TEXT): Region of the customer
+        Customer_Segment (TEXT): Segment of the customer
+        Cust_id (TEXT): Unique Customer ID
+	
+    2. market_fact: Details of every order item sold
+		
+        Ord_id (TEXT): Order ID
+        Prod_id (TEXT): Prod ID
+        Ship_id (TEXT): Shipment ID
+        Cust_id (TEXT): Customer ID
+        Sales (DOUBLE): Sales from the Item sold
+        Discount (DOUBLE): Discount on the Item sold
+        Order_Quantity (INT): Order Quantity of the Item sold
+        Profit (DOUBLE): Profit from the Item sold
+        Shipping_Cost (DOUBLE): Shipping Cost of the Item sold
+        Product_Base_Margin (DOUBLE): Product Base Margin on the Item sold
+        
+    3. orders_dimen: Details of every order placed
+		
+        Order_ID (INT): Order ID
+        Order_Date (TEXT): Order Date
+        Order_Priority (TEXT): Priority of the Order
+        Ord_id (TEXT): Unique Order ID
+	
+    4. prod_dimen: Details of product category and sub category
+		
+        Product_Category (TEXT): Product Category
+        Product_Sub_Category (TEXT): Product Sub Category
+        Prod_id (TEXT): Unique Product ID
+	
+    5. shipping_dimen: Details of shipping of orders
+		
+        Order_ID (INT): Order ID
+        Ship_Mode (TEXT): Shipping Mode
+        Ship_Date (TEXT): Shipping Date
+        Ship_id (TEXT): Unique Shipment ID */
+        
+        
+/* B. Identify and list the Primary Keys and Foreign Keys for this dataset
+	(Hint: If a table don’t have Primary Key or Foreign Key, then specifically mention it in your answer.)
+	1. cust_dimen
+		Primary Key: Cust_id
+        Foreign Key: NA
+	
+    2. market_fact
+		Primary Key: NA
+        Foreign Key: Ord_id, Prod_id, Ship_id, Cust_id
+	
+    3. orders_dimen
+		Primary Key: Ord_id
+        Foreign Key: NA
+	
+    4. prod_dimen
+		Primary Key: Prod_id, Product_Sub_Category
+        Foreign Key: NA
+	
+    5. shipping_dimen
+		Primary Key: Ship_id
+        Foreign Key: NA */
+        
+create schema superstores;
+use superstores;
+drop table orders_dimen;
+
+select * from cust_dimen;
+select * from market_fact;
+select * from orders_dimen;
+select * from prod_dimen;
+select * from shipping_dimen;
+
+
+/* Basic & Advanced Analysis */
+
+/* 1. Write a query to display the Customer_Name and Customer Segment using alias 
+name “Customer Name", "Customer Segment" from table Cust_dimen.*/
+
+use superstores;
+
+select customer_name as "Customer Name", customer_segment as "Customer Segment"
+from cust_dimen;
+
+/* 2. Write a query to find all the details of the customer from the table cust_dimen 
+order by desc*/
+
+select * from cust_dimen order by 1 desc;
+
+/* 3. Write a query to get the Order ID, Order date from table orders_dimen where 
+‘Order Priority’ is high */
+
+select order_id, order_date
+from orders_dimen
+where order_priority = 'high';
+
+/* 4. Find the total and the average sales (display total_sales and avg_sales) */
+
+select sum(sales) as total_sales, avg(sales) as avg_sales 
+from market_fact;
+
+/*5. Write a query to get the maximum and minimum sales from maket_fact table*/
+
+select max(sales) as maximum_sale, min(sales) as minimum_sale 
+from market_fact;
+
+/*6. Display the number of customers in each region in decreasing order of 
+no_of_customers. The result should contain columns Region, no_of_customers.*/
+
+select region, count(customer_name) as "no_of_customers"
+from cust_dimen
+group by region order by count(customer_name) desc;
+
+/*7. Find the region having maximum customers (display the region name and 
+max(no_of_customers)*/
+
+select region,count(customer_name)
+from cust_dimen
+group by region order by count(customer_name) desc;
+
+/* 8. Find all the customers from Atlantic region who have ever purchased ‘TABLES’ 
+and the number of tables purchased (display the customer name, no_of_tables 
+purchased) */ 
+
+select * from prod_dimen;
+
+select c.customer_name, count(*) as num_tables from
+market_fact s,cust_dimen c, prod_dimen p
+where s.cust_id = c.cust_id and s.prod_id = p.prod_id or p.product_sub_category = 'tables' and c.region = 'atlantic'
+group by c.customer_name;
+
+/*9. Find all the customers from Ontario province who own Small Business. (display 
+the customer name, no of small business owners) */
+
+select * from cust_dimen;
+select Customer_name,count(*) as "no of small business owners"
+from cust_dimen
+where Customer_segment = "small business" and province = "ontario"
+group by Customer_name;
+
+/* Find the number and id of products sold in decreasing order of products sold 
+(display product id, no_of_products sold) */
+
+select prod_id as Product_id, count(*) as 'no.of products'
+from market_fact 
+group by Prod_id order by count('no.of products') desc;
+
+/* 11. Display product Id and product sub category whose produt category belongs to 
+Furniture and Technlogy. The result should contain columns product id, product 
+sub category.*/
+
+select prod_id, product_sub_category 
+from prod_dimen
+where product_category = 'FURNITURE' or product_category = 'TECHNOLOGY'
+group by prod_id;
+
+/* 12. Display the product categories in descending order of profits (display the product 
+category wise profits i.e. product_category, profits)?*/
+
+select p.Product_Category, s.Profit
+from market_fact s, prod_dimen p
+where s.prod_id=p.prod_id
+group by product_category order by profit desc;
+
+/*13. Display the product category, product sub-category and the profit within each 
+subcategory in three columns.*/
+
+select product_category, product_sub_category,profit
+from market_fact s,prod_dimen p
+where s.prod_id=p.prod_id;
+
+/* 14 Display the order date, order quantity and the sales for the order.*/
+
+select order_date,order_quantity,sales
+from orders_dimen s,market_fact g
+where s.ord_id = g.ord_id;
+use superstores;
+
+/* 15. Display the names of the customers whose name contains the 
+ i) Second letter as ‘R’
+ ii) Fourth letter as ‘D’ */
+
+ select Customer_Name from cust_dimen 
+where Customer_Name like '_R%' and Customer_Name like '___D%';
+
+/* 16. Write a SQL query to to make a list with Cust_Id, Sales, Customer Name and 
+their region where sales are between 1000 and 5000.*/
+
+select d.Cust_id,d.customer_name,f.sales,d.region
+from cust_dimen d, market_fact f
+where d.cust_id = f.cust_id
+and sales between 1000 and 5000;
+
+
+/* 17. Write a SQL query to find the 3rd highest sales.*/
+
+select max(sales) as '3rd highest salary'
+from (
+select Sales from market_fact order by Sales desc limit 3
+) as a;
+
+/*18. Where is the least profitable product subcategory shipped the most? For the least 
+profitable product sub-category, display the region-wise no_of_shipments and the 
+profit made in each region in decreasing order of profits (i.e. region, 
+no_of_shipments, profit_in_each_region) */
+
+select Region,count(Ship_id) as no_of_shipment,sum(Profit) as Profit from 
+cust_dimen c,market_fact s,prod_dimen p
+where c.Cust_id = s.Cust_id and s.Prod_id = p.Prod_id
+group by Region
+order by profit desc;
+
